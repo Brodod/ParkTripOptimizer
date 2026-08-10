@@ -67,10 +67,13 @@ def bottlenecks(df, capacity_path=CAPACITY_PATH):
     )
     summary = summary.merge(caps, on="ride_name", how="left")
 
-    # Implied number of guests held in queue at the average posted wait.
-    summary["implied_queue"] = (
-        summary["design_capacity_hr"] * summary["mean_wait"] / 60
-    ).round(0)
+    # --- merge check ---
+    #Only warn about rides that actually generate waits (flat/kiddie rides do not hurt)
+    missing = summary[summary["design_capacity_hr"].isna() & (summary["mean_wait"] > 5)]["ride_name"].tolist()
+    if missing:
+        print (f"WARNING: {len(missing)} rides with real waits have no capacity:")
+        for name in missing:
+            print(f" - {name!r}")
 
     # Guest-hours of waiting generated per operating hour. This is the number
     # an operations manager actually cares about minimizing park-wide.
