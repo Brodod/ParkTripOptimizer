@@ -1,0 +1,48 @@
+name: poll-queue-times
+
+on:
+  schedule:
+    # Every 15 min during park operating hours (~9am-11pm US Central).
+    # Cron is UTC. This window is correct for CDT (UTC-5); shift by one
+    # hour when Central switches to CST in November.
+    - cron: "*/15 14-23,0-4 * * *"
+  workflow_dispatch:        # lets you run it manually from the Actions tab
+
+concurrency:
+  group: poller             # never let two runs collide on the same branch
+  cancel-in-progress: false
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write       # required for the runner to push results back
+
+    steps:
+      - name: Check out the data branch
+        uses: actions/checkout@v4
+        with:
+          ref: data
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Poll
+        run: python poller_csv.py --park-id ${{ vars.PARK_ID }}
+
+      - name: Commit new observations
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [[ -z "$(git status --porcelain data/)" ]]; then
+            echo "No new rows; nothing to commit."
+            exit 0
+          fi
+          git add data/
+          git commit -m "data: poll $(date -u +'%Y-%m-%dT%H:%MZ')"
+          git pull --rebase origin data
+          git push origin data
