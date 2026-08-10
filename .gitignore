@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Local data — the collected CSV lives on the `data` branch, not `main`.
+# See note below about already-tracked files.
+data/
+waits.db
+*.sqlite
+
+# Secrets — never commit these
+.env
+*.pem
