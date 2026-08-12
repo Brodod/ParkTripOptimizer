@@ -32,7 +32,7 @@ jobs:
         run: pip install requests
 
       - name: Poll
-        run: python poller_csv.py --park-id ${{ vars.PARK_ID }}
+        run: python poller.py --park-id ${{ vars.PARK_ID }}
 
       - name: Commit new observations
         run: |
